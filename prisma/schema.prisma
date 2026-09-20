@@ -1,0 +1,199 @@
+// 흐름-및-스키마.md 기준. AdSlot.status·금액 컬럼을 두지 않는다.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SiteStatus {
+  published
+  unpublished
+}
+
+enum SubmissionStatus {
+  pending
+  approved
+  rejected
+}
+
+enum AdRequestStatus {
+  pending
+  rejected
+  converted
+}
+
+enum AdPeriodType {
+  days7
+  days30
+  other
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  sites        Site[]
+}
+
+model Category {
+  id         String      @id @default(cuid())
+  name       String      @unique
+  slug       String      @unique
+  sortOrder  Int
+  createdAt  DateTime    @default(now())
+  sites      Site[]
+  adRequests AdRequest[]
+}
+
+model Keyword {
+  id              String           @id @default(cuid())
+  name            String           @unique
+  slug            String           @unique
+  createdAt       DateTime         @default(now())
+  sites           SiteKeyword[]
+  adSlots         AdSlot[]
+  featuredKeyword FeaturedKeyword?
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  createdAt DateTime  @default(now())
+  sites     SiteTag[]
+}
+
+model Site {
+  id               String         @id @default(cuid())
+  name             String
+  slug             String         @unique
+  url              String
+  urlNormalized    String         @unique
+  description      String
+  features         String?
+  language         String         @default("ko")
+  status           SiteStatus
+  imageKey         String?
+  imageUrl         String?
+  categoryId       String
+  category         Category       @relation(fields: [categoryId], references: [id])
+  publishedAt      DateTime?
+  unpublishedAt    DateTime?
+  createdByAdminId String?
+  createdByAdmin   AdminUser?     @relation(fields: [createdByAdminId], references: [id])
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  keywords         SiteKeyword[]
+  tags             SiteTag[]
+  submissions      Submission[]
+  adRequests       AdRequest[]
+  adSlots          AdSlot[]
+  featuredSite     FeaturedSite?
+
+  @@index([status, language, publishedAt])
+  @@index([categoryId])
+}
+
+model SiteKeyword {
+  siteId    String
+  keywordId String
+  createdAt DateTime @default(now())
+  site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  keyword   Keyword  @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+
+  @@id([siteId, keywordId])
+}
+
+model SiteTag {
+  siteId    String
+  tagId     String
+  createdAt DateTime @default(now())
+  site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([siteId, tagId])
+}
+
+model Submission {
+  id            String           @id @default(cuid())
+  name          String
+  url           String
+  urlNormalized String
+  description   String
+  keywordsText  String
+  status        SubmissionStatus
+  rejectNote    String?
+  siteId        String?
+  site          Site?            @relation(fields: [siteId], references: [id])
+  ipHash        String?
+  createdAt     DateTime         @default(now())
+  reviewedAt    DateTime?
+
+  @@index([status, createdAt])
+  @@index([urlNormalized])
+}
+
+model AdRequest {
+  id            String          @id @default(cuid())
+  name          String
+  url           String
+  urlNormalized String
+  description   String
+  categoryId    String?
+  category      Category?       @relation(fields: [categoryId], references: [id])
+  keywordsText  String
+  periodType    AdPeriodType
+  periodNote    String?
+  contactEmail  String?
+  contactPhone  String?
+  imageKey      String?
+  imageUrl      String?
+  status        AdRequestStatus
+  rejectNote    String?
+  siteId        String?
+  site          Site?           @relation(fields: [siteId], references: [id])
+  ipHash        String?
+  createdAt     DateTime        @default(now())
+  reviewedAt    DateTime?
+  adSlot        AdSlot?
+}
+
+model AdSlot {
+  id          String     @id @default(cuid())
+  siteId      String
+  site        Site       @relation(fields: [siteId], references: [id])
+  keywordId   String
+  keyword     Keyword    @relation(fields: [keywordId], references: [id])
+  startsOn    DateTime   @db.Date
+  endsOn      DateTime   @db.Date
+  priority    Int        @default(0)
+  adRequestId String?    @unique
+  adRequest   AdRequest? @relation(fields: [adRequestId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([keywordId, startsOn, endsOn])
+  @@index([siteId])
+}
+
+model FeaturedKeyword {
+  id        String   @id @default(cuid())
+  keywordId String   @unique
+  keyword   Keyword  @relation(fields: [keywordId], references: [id])
+  position  Int
+  createdAt DateTime @default(now())
+}
+
+model FeaturedSite {
+  id        String   @id @default(cuid())
+  siteId    String   @unique
+  site      Site     @relation(fields: [siteId], references: [id])
+  position  Int
+  createdAt DateTime @default(now())
+}
