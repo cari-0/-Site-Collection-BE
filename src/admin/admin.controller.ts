@@ -1,16 +1,59 @@
-import { Controller, Get, HttpCode, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { IsEmail, IsString, MinLength } from 'class-validator';
+import { AdminGuard } from '../auth/admin.guard';
+import { AuthService } from '../auth/auth.service';
+import { PrismaService } from '../prisma/prisma.service';
+
+class LoginDto {
+  @IsEmail()
+  email!: string;
+
+  @IsString()
+  @MinLength(1)
+  password!: string;
+}
 
 @Controller('admin')
 export class AdminController {
+  constructor(
+    private readonly auth: AuthService,
+    private readonly prisma: PrismaService,
+  ) {}
+
   @Post('login')
-  @HttpCode(501)
-  login() {
-    return { error: '관리자 로그인은 다음 단계에서 연결합니다.' };
+  @HttpCode(200)
+  login(@Body() body: LoginDto) {
+    return this.auth.login(body.email, body.password);
   }
 
   @Get('me')
-  @HttpCode(501)
-  me() {
-    return { error: '관리자 세션은 다음 단계에서 연결합니다.' };
+  @UseGuards(AdminGuard)
+  me(@Req() request: { admin: { id: string; email: string } }) {
+    return request.admin;
+  }
+
+  @Get('stats')
+  @UseGuards(AdminGuard)
+  async stats() {
+    const [published, pendingSubmissions, pendingAds] = await Promise.all([
+      this.prisma.site.count({ where: { status: 'published', language: 'ko' } }),
+      this.prisma.submission.count({ where: { status: 'pending' } }),
+      this.prisma.adRequest.count({ where: { status: 'pending' } }),
+    ]);
+    return { published, pendingSubmissions, pendingAds };
+  }
+
+  @Get('categories')
+  @UseGuards(AdminGuard)
+  categories() {
+    return this.prisma.category.findMany({ orderBy: { sortOrder: 'asc' } });
   }
 }
