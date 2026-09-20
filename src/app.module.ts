@@ -6,10 +6,13 @@ import { AdminController } from './admin/admin.controller';
 import { AdsController } from './ads/ads.controller';
 import { AuthModule } from './auth/auth.module';
 import { FeaturedController } from './featured/featured.controller';
+import { FeaturedService } from './featured/featured.service';
 import { HealthController } from './health.controller';
 import { KeywordsController } from './keywords/keywords.controller';
 import { PrismaModule } from './prisma/prisma.module';
+import { SearchService } from './search/search.service';
 import { SitesController } from './sites/sites.controller';
+import { SitesService } from './sites/sites.service';
 import { SubmissionsController } from './submissions/submissions.controller';
 import { UploadsController } from './uploads/uploads.controller';
 
@@ -26,6 +29,6 @@ import { UploadsController } from './uploads/uploads.controller';
     AdminSitesController,
     UploadsController,
   ],
-  providers: [AdminSitesService],
+  providers: [AdminSitesService, SearchService, SitesService, FeaturedService],
 })
 export class AppModule {}

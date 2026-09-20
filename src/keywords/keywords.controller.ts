@@ -1,19 +1,12 @@
 import { Controller, Get, Param } from '@nestjs/common';
-import { MAX_ADS_PER_KEYWORD, PAGE_SIZE } from '../common/constants';
-import { slugToDisplayName } from '../common/slug';
+import { SearchService } from '../search/search.service';
 
 @Controller('k')
 export class KeywordsController {
+  constructor(private readonly search: SearchService) {}
+
   @Get(':slug')
   landing(@Param('slug') slug: string) {
-    return {
-      name: slugToDisplayName(slug),
-      slug,
-      ads: [],
-      sites: [],
-      total: 0,
-      pageSize: PAGE_SIZE,
-      maxAds: MAX_ADS_PER_KEYWORD,
-    };
+    return this.search.landing(slug);
   }
 }
