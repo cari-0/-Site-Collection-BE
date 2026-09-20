@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { AdminSubmissionsController } from './admin/admin-submissions.controller';
 import { AdminSitesController } from './admin/admin-sites.controller';
 import { AdminSitesService } from './admin/admin-sites.service';
 import { AdminController } from './admin/admin.controller';
@@ -15,6 +16,7 @@ import { SitesController } from './sites/sites.controller';
 import { HeartsService } from './sites/hearts.service';
 import { SitesService } from './sites/sites.service';
 import { SubmissionsController } from './submissions/submissions.controller';
+import { SubmissionsService } from './submissions/submissions.service';
 import { UploadsController } from './uploads/uploads.controller';
 import { UploadsService } from './uploads/uploads.service';
 
@@ -29,6 +31,7 @@ import { UploadsService } from './uploads/uploads.service';
     AdsController,
     AdminController,
     AdminSitesController,
+    AdminSubmissionsController,
     UploadsController,
   ],
   providers: [
@@ -38,6 +41,7 @@ import { UploadsService } from './uploads/uploads.service';
     HeartsService,
     FeaturedService,
     UploadsService,
+    SubmissionsService,
   ],
 })
 export class AppModule {}
