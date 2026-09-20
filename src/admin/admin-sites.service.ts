@@ -20,6 +20,8 @@ type SiteInput = {
   categoryId: string;
   keywords?: string;
   tags?: string;
+  imageUrl?: string;
+  imageKey?: string;
 };
 
 @Injectable()
@@ -68,6 +70,8 @@ export class AdminSitesService {
           language: 'ko',
           status: data.status,
           categoryId: data.categoryId,
+          imageUrl: data.imageUrl,
+          imageKey: data.imageKey,
           publishedAt: now,
           createdByAdminId: adminId,
         },
@@ -108,6 +112,8 @@ export class AdminSitesService {
           features: data.features,
           status: data.status,
           categoryId: data.categoryId,
+          imageUrl: data.imageUrl ?? existing.imageUrl,
+          imageKey: data.imageKey ?? existing.imageKey,
           publishedAt,
           unpublishedAt,
         },
@@ -153,6 +159,8 @@ export class AdminSitesService {
       categoryId: category.id,
       keywordNames: splitNames(input.keywords),
       tagNames: splitNames(input.tags),
+      imageUrl: input.imageUrl?.trim() || null,
+      imageKey: input.imageKey?.trim() || null,
     };
   }
 

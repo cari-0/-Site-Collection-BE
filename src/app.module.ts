@@ -15,6 +15,7 @@ import { SitesController } from './sites/sites.controller';
 import { SitesService } from './sites/sites.service';
 import { SubmissionsController } from './submissions/submissions.controller';
 import { UploadsController } from './uploads/uploads.controller';
+import { UploadsService } from './uploads/uploads.service';
 
 @Module({
   imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, AuthModule],
@@ -29,6 +30,12 @@ import { UploadsController } from './uploads/uploads.controller';
     AdminSitesController,
     UploadsController,
   ],
-  providers: [AdminSitesService, SearchService, SitesService, FeaturedService],
+  providers: [
+    AdminSitesService,
+    SearchService,
+    SitesService,
+    FeaturedService,
+    UploadsService,
+  ],
 })
 export class AppModule {}
