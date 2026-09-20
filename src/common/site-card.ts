@@ -4,6 +4,7 @@ type SiteWithRelations = {
   description: string;
   url: string;
   imageUrl: string | null;
+  heartCount?: number;
   category?: { name: string } | null;
   tags?: { tag: { name: string } }[];
 };
@@ -15,6 +16,7 @@ export function toSiteCard(site: SiteWithRelations) {
     description: site.description,
     url: site.url,
     imageUrl: site.imageUrl,
+    heartCount: site.heartCount ?? 0,
     category: site.category?.name,
     tags: (site.tags ?? []).map((row) => row.tag.name),
   };

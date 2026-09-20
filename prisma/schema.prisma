@@ -95,9 +95,23 @@ model Site {
   adRequests       AdRequest[]
   adSlots          AdSlot[]
   featuredSite     FeaturedSite?
+  heartCount       Int            @default(0)
+  hearts           SiteHeart[]
 
   @@index([status, language, publishedAt])
+  @@index([status, language, heartCount])
   @@index([categoryId])
+}
+
+model SiteHeart {
+  id         String   @id @default(cuid())
+  siteId     String
+  site       Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  visitorKey String
+  createdAt  DateTime @default(now())
+
+  @@unique([siteId, visitorKey])
+  @@index([siteId])
 }
 
 model SiteKeyword {

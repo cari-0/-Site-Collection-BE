@@ -12,6 +12,7 @@ import { KeywordsController } from './keywords/keywords.controller';
 import { PrismaModule } from './prisma/prisma.module';
 import { SearchService } from './search/search.service';
 import { SitesController } from './sites/sites.controller';
+import { HeartsService } from './sites/hearts.service';
 import { SitesService } from './sites/sites.service';
 import { SubmissionsController } from './submissions/submissions.controller';
 import { UploadsController } from './uploads/uploads.controller';
@@ -34,6 +35,7 @@ import { UploadsService } from './uploads/uploads.service';
     AdminSitesService,
     SearchService,
     SitesService,
+    HeartsService,
     FeaturedService,
     UploadsService,
   ],

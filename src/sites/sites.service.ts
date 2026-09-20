@@ -25,7 +25,7 @@ export class SitesService {
         categoryId: site.categoryId,
         id: { not: site.id },
       },
-      orderBy: { publishedAt: 'desc' },
+      orderBy: [{ heartCount: 'desc' }, { publishedAt: 'desc' }],
       take: 3,
       include: {
         category: true,

@@ -68,42 +68,12 @@ export class SearchService {
     });
 
     return sites
-      .map((site) => ({ site, score: this.score(site, slug, q) }))
       .sort((a, b) => {
-        if (b.score !== a.score) return b.score - a.score;
-        const aTime = a.site.publishedAt?.getTime() ?? 0;
-        const bTime = b.site.publishedAt?.getTime() ?? 0;
+        if (b.heartCount !== a.heartCount) return b.heartCount - a.heartCount;
+        const aTime = a.publishedAt?.getTime() ?? 0;
+        const bTime = b.publishedAt?.getTime() ?? 0;
         return bTime - aTime;
       })
-      .slice(0, PAGE_SIZE)
-      .map((row) => row.site);
-  }
-
-  private score(
-    site: {
-      name: string;
-      description: string;
-      keywords: { keyword: { name: string; slug: string } }[];
-      tags: { tag: { name: string } }[];
-    },
-    slug: string,
-    q: string,
-  ) {
-    const query = q.toLowerCase();
-    if (
-      site.keywords.some(
-        (row) => row.keyword.slug === slug || row.keyword.name.toLowerCase() === query,
-      )
-    ) {
-      return 3;
-    }
-    if (site.name.toLowerCase().includes(query)) return 2;
-    if (
-      site.description.toLowerCase().includes(query) ||
-      site.tags.some((row) => row.tag.name.toLowerCase().includes(query))
-    ) {
-      return 1;
-    }
-    return 0;
+      .slice(0, PAGE_SIZE);
   }
 }
