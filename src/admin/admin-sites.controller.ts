@@ -56,6 +56,10 @@ class SiteDto {
   @IsOptional()
   @IsString()
   imageKey?: string;
+
+  @IsOptional()
+  @IsString()
+  submissionId?: string;
 }
 
 @Controller('admin/sites')

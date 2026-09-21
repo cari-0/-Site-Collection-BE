@@ -22,6 +22,7 @@ type SiteInput = {
   tags?: string;
   imageUrl?: string;
   imageKey?: string;
+  submissionId?: string;
 };
 
 @Injectable()
@@ -78,6 +79,22 @@ export class AdminSitesService {
       });
       await this.syncKeywords(tx, site.id, data.keywordNames);
       await this.syncTags(tx, site.id, data.tagNames);
+      if (input.submissionId) {
+        const submission = await tx.submission.findUnique({
+          where: { id: input.submissionId },
+        });
+        if (!submission || submission.status !== 'pending') {
+          throw new BadRequestException('대기 중인 제보만 등록할 수 있습니다.');
+        }
+        await tx.submission.update({
+          where: { id: submission.id },
+          data: {
+            status: 'approved',
+            siteId: site.id,
+            reviewedAt: new Date(),
+          },
+        });
+      }
       return site;
     });
   }

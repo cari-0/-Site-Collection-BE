@@ -3,6 +3,7 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { hashIp } from '../common/hash';
 import { allowRequest } from '../common/rate-limit';
@@ -105,5 +106,29 @@ export class SubmissionsService {
         createdAt: true,
       },
     });
+  }
+
+  async get(id: string) {
+    const submission = await this.prisma.submission.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        url: true,
+        description: true,
+        keywordsText: true,
+        status: true,
+        createdAt: true,
+      },
+    });
+    if (!submission) throw new NotFoundException('제보를 찾을 수 없습니다.');
+    return submission;
+  }
+
+  async remove(id: string) {
+    const submission = await this.prisma.submission.findUnique({ where: { id } });
+    if (!submission) throw new NotFoundException('제보를 찾을 수 없습니다.');
+    await this.prisma.submission.delete({ where: { id } });
+    return { ok: true };
   }
 }
