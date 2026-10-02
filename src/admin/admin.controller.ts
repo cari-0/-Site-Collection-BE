@@ -10,6 +10,7 @@ import {
 import { IsEmail, IsString, MinLength } from 'class-validator';
 import { AdminGuard } from '../auth/admin.guard';
 import { AuthService } from '../auth/auth.service';
+import { seoulToday } from '../common/date';
 import { PrismaService } from '../prisma/prisma.service';
 
 class LoginDto {
@@ -43,12 +44,20 @@ export class AdminController {
   @Get('stats')
   @UseGuards(AdminGuard)
   async stats() {
-    const [published, pendingSubmissions, pendingAds] = await Promise.all([
+    const today = seoulToday();
+    const [published, pendingSubmissions, pendingAds, activeAds] = await Promise.all([
       this.prisma.site.count({ where: { status: 'published', language: 'ko' } }),
       this.prisma.submission.count({ where: { status: 'pending' } }),
       this.prisma.adRequest.count({ where: { status: 'pending' } }),
+      this.prisma.adSlot.count({
+        where: {
+          startsOn: { lte: today },
+          endsOn: { gte: today },
+          site: { status: 'published', language: 'ko' },
+        },
+      }),
     ]);
-    return { published, pendingSubmissions, pendingAds };
+    return { published, pendingSubmissions, pendingAds, activeAds };
   }
 
   @Get('categories')
