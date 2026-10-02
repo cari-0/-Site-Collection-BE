@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -88,5 +89,10 @@ export class AdminSitesController {
   @Patch(':id')
   update(@Param('id') id: string, @Body() body: SiteDto) {
     return this.sites.update(id, body);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.sites.remove(id);
   }
 }

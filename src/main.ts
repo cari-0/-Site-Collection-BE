@@ -8,7 +8,11 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const origin = process.env.FRONTEND_ORIGIN ?? 'http://localhost:3000';
 
-  app.enableCors({ origin, credentials: true });
+  app.enableCors({
+    origin,
+    credentials: true,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+  });
   app.useStaticAssets(join(process.cwd(), 'uploads'), { prefix: '/uploads/' });
   app.setGlobalPrefix('api', { exclude: ['health'] });
   app.useGlobalPipes(

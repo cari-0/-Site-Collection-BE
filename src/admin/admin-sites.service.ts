@@ -143,6 +143,21 @@ export class AdminSitesService {
     });
   }
 
+  async remove(id: string) {
+    const existing = await this.prisma.site.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('사이트를 찾을 수 없습니다.');
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.featuredSite.deleteMany({ where: { siteId: id } });
+      await tx.adSlot.deleteMany({ where: { siteId: id } });
+      await tx.submission.updateMany({ where: { siteId: id }, data: { siteId: null } });
+      await tx.adRequest.updateMany({ where: { siteId: id }, data: { siteId: null } });
+      await tx.site.delete({ where: { id } });
+    });
+
+    return { ok: true };
+  }
+
   private async prepare(input: SiteInput) {
     const name = input.name?.trim();
     const description = input.description?.trim();
