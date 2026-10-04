@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { MAX_ADS_PER_KEYWORD, PAGE_SIZE } from '../common/constants';
 import { seoulToday } from '../common/date';
 import { toSiteCard } from '../common/site-card';
-import { slugToDisplayName } from '../common/slug';
+import { slugToDisplayName, toSlug } from '../common/slug';
 import { PrismaService } from '../prisma/prisma.service';
 
 const siteInclude = {
@@ -16,16 +16,27 @@ export class SearchService {
   constructor(private readonly prisma: PrismaService) {}
 
   async landing(rawSlug: string) {
-    const slug = decodeURIComponent(rawSlug).trim();
-    const name = slugToDisplayName(slug);
-    const keyword = await this.prisma.keyword.findUnique({ where: { slug } });
+    const raw = decodeURIComponent(rawSlug).trim();
+    const slug = toSlug(raw) || raw.toLowerCase();
+    const name = slugToDisplayName(raw);
+    const keyword = await this.prisma.keyword.findFirst({
+      where: {
+        OR: [
+          { slug },
+          { slug: { equals: raw, mode: 'insensitive' } },
+          { name: { equals: raw, mode: 'insensitive' } },
+          { name: { equals: name, mode: 'insensitive' } },
+          { name: { equals: slug, mode: 'insensitive' } },
+        ],
+      },
+    });
     const ads = keyword ? await this.activeAds(keyword.id) : [];
     const adIds = new Set(ads.map((item) => item.id));
-    const organic = (await this.organic(slug, name)).filter((site) => !adIds.has(site.id));
+    const organic = (await this.organic(slug, raw, name)).filter((site) => !adIds.has(site.id));
 
     return {
       name: keyword?.name ?? name,
-      slug,
+      slug: keyword?.slug ?? slug,
       ads: ads.map((site) => toSiteCard(site)),
       sites: organic.map((site) => toSiteCard(site)),
       total: organic.length,
@@ -50,18 +61,26 @@ export class SearchService {
     return slots.map((slot) => slot.site);
   }
 
-  private async organic(slug: string, name: string) {
-    const q = name.trim();
+  private async organic(slug: string, raw: string, name: string) {
+    const terms = [...new Set([slug, raw.trim(), name.trim()].filter(Boolean))];
+    const keywordMatch = {
+      OR: terms.flatMap((term) => [
+        { slug: { equals: term, mode: 'insensitive' as const } },
+        { name: { equals: term, mode: 'insensitive' as const } },
+        { name: { contains: term, mode: 'insensitive' as const } },
+      ]),
+    };
     const sites = await this.prisma.site.findMany({
       where: {
         status: 'published',
         language: 'ko',
         OR: [
-          { keywords: { some: { keyword: { slug } } } },
-          { keywords: { some: { keyword: { name: { equals: q, mode: 'insensitive' } } } } },
-          { name: { contains: q, mode: 'insensitive' } },
-          { description: { contains: q, mode: 'insensitive' } },
-          { tags: { some: { tag: { name: { contains: q, mode: 'insensitive' } } } } },
+          { keywords: { some: { keyword: keywordMatch } } },
+          ...terms.flatMap((term) => [
+            { name: { contains: term, mode: 'insensitive' as const } },
+            { description: { contains: term, mode: 'insensitive' as const } },
+            { tags: { some: { tag: { name: { contains: term, mode: 'insensitive' as const } } } } },
+          ]),
         ],
       },
       include: siteInclude,
