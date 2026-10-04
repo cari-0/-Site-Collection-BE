@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Transform, Type } from 'class-transformer';
-import { IsBoolean, IsInt, IsOptional, IsString, MaxLength, Min, MinLength } from 'class-validator';
+import { IsBoolean, IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 import { AdminGuard } from '../auth/admin.guard';
 import { AdminAdsService } from './admin-ads.service';
 
@@ -18,10 +18,10 @@ class SlotDto {
   @IsString()
   siteId?: string;
 
+  @IsOptional()
   @IsString()
-  @MinLength(1)
   @MaxLength(80)
-  keyword!: string;
+  keyword?: string;
 
   @IsString()
   startsOn!: string;

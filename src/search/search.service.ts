@@ -43,7 +43,7 @@ export class SearchService {
         endsOn: { gte: today },
         site: { status: 'published', language: 'ko' },
       },
-      orderBy: { priority: 'asc' },
+      orderBy: [{ priority: 'asc' }, { startsOn: 'asc' }],
       take: MAX_ADS_PER_KEYWORD,
       include: { site: { include: siteInclude } },
     });

@@ -11,7 +11,7 @@ import { AdminSitesService } from './admin-sites.service';
 
 type SlotInput = {
   siteId?: string;
-  keyword: string;
+  keyword?: string;
   startsOn: string;
   endsOn: string;
   priority?: number;
@@ -67,9 +67,8 @@ export class AdminAdsService {
   async convert(id: string, input: SlotInput, adminId: string) {
     const request = await this.requirePending(id);
     const site = await this.resolveSite(request, input, adminId);
-    const slot = await this.createSlot({
+    const result = await this.createSlotsForSite({
       siteId: site.id,
-      keyword: input.keyword,
       startsOn: input.startsOn,
       endsOn: input.endsOn,
       priority: input.priority,
@@ -83,14 +82,13 @@ export class AdminAdsService {
         reviewedAt: new Date(),
       },
     });
-    return slot;
+    return result;
   }
 
   async createSlotDirect(input: SlotInput) {
     if (!input.siteId) throw new BadRequestException('사이트를 선택하세요.');
-    return this.createSlot({
+    return this.createSlotsForSite({
       siteId: input.siteId,
-      keyword: input.keyword,
       startsOn: input.startsOn,
       endsOn: input.endsOn,
       priority: input.priority,
@@ -141,6 +139,54 @@ export class AdminAdsService {
       endsOn: ymd(updated.endsOn),
       phase: slotPhase(updated.startsOn, updated.endsOn),
     };
+  }
+
+  private async createSlotsForSite(input: {
+    siteId: string;
+    startsOn: string;
+    endsOn: string;
+    priority?: number;
+    adRequestId?: string;
+  }) {
+    const names = await this.siteKeywordNames(input.siteId);
+    if (!names.length) {
+      throw new BadRequestException('사이트에 키워드가 없습니다. 사이트에 키워드를 먼저 붙여 주세요.');
+    }
+
+    const slots: Array<{ id: string }> = [];
+    const skipped: string[] = [];
+    for (const [index, name] of names.entries()) {
+      try {
+        const slot = await this.createSlot({
+          siteId: input.siteId,
+          keyword: name,
+          startsOn: input.startsOn,
+          endsOn: input.endsOn,
+          priority: input.priority,
+          adRequestId: index === 0 ? input.adRequestId : undefined,
+        });
+        slots.push({ id: slot.id });
+      } catch (error) {
+        if (error instanceof BadRequestException) {
+          skipped.push(name);
+          continue;
+        }
+        throw error;
+      }
+    }
+    if (!slots.length) {
+      throw new BadRequestException('이 사이트의 키워드 광고 자리가 가득 찼습니다.');
+    }
+    return { slots, skipped };
+  }
+
+  private async siteKeywordNames(siteId: string) {
+    const rows = await this.prisma.siteKeyword.findMany({
+      where: { siteId },
+      include: { keyword: true },
+      orderBy: { createdAt: 'asc' },
+    });
+    return rows.map((row) => row.keyword.name);
   }
 
   private async createSlot(input: {

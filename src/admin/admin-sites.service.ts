@@ -32,8 +32,16 @@ export class AdminSitesService {
   list() {
     return this.prisma.site.findMany({
       orderBy: { updatedAt: 'desc' },
-      include: { category: true },
-    });
+      include: {
+        category: true,
+        keywords: { include: { keyword: true } },
+      },
+    }).then((rows) =>
+      rows.map((site) => ({
+        ...site,
+        keywordsText: site.keywords.map((row) => row.keyword.name).join(', '),
+      })),
+    );
   }
 
   async get(id: string) {
