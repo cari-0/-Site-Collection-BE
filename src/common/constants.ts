@@ -1,5 +1,9 @@
 export const SITE_NAME = '유사모';
 export const PAGE_SIZE = 30;
 export const MAX_ADS_PER_KEYWORD = 3;
+export const HOME_REFRESH_MS = 60_000;
+export const POPULAR_KEYWORD_LIMIT = 6;
+export const RECENT_SITE_LIMIT = 6;
+export const SEARCH_WINDOW_DAYS = 7;
 export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;

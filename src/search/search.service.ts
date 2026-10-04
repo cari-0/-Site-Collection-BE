@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { MAX_ADS_PER_KEYWORD, PAGE_SIZE } from '../common/constants';
 import { seoulToday } from '../common/date';
+import { hashIp } from '../common/hash';
+import { allowRequest } from '../common/rate-limit';
 import { toSiteCard } from '../common/site-card';
 import { slugToDisplayName, toSlug } from '../common/slug';
 import { PrismaService } from '../prisma/prisma.service';
@@ -29,7 +31,7 @@ type OrganicSite = {
 export class SearchService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async landing(rawSlug: string) {
+  async landing(rawSlug: string, ip = 'unknown') {
     const raw = decodeURIComponent(rawSlug).trim();
     const slug = toSlug(raw) || raw.toLowerCase();
     const name = slugToDisplayName(raw);
@@ -44,6 +46,7 @@ export class SearchService {
         ],
       },
     });
+    await this.recordSearch(slug, keyword?.id, ip);
     const ads = keyword ? await this.activeAds(keyword.id) : [];
     const adIds = new Set(ads.map((item) => item.id));
     const organic = (await this.organic(slug, raw, name)).filter((site) => !adIds.has(site.id));
@@ -73,6 +76,14 @@ export class SearchService {
       include: { site: { include: siteInclude } },
     });
     return slots.map((slot) => slot.site);
+  }
+
+  private async recordSearch(slug: string, keywordId: string | undefined, ip: string) {
+    if (!slug) return;
+    if (!allowRequest(`search:${ip}`, 40, 10 * 60 * 1000)) return;
+    await this.prisma.searchEvent.create({
+      data: { slug, keywordId: keywordId ?? null, ipHash: hashIp(ip) },
+    });
   }
 
   private async organic(slug: string, raw: string, name: string) {

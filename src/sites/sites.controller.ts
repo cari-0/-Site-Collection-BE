@@ -1,5 +1,6 @@
 import { Controller, Get, Headers, Param, Post, Req } from '@nestjs/common';
 import { HeartsService } from './hearts.service';
+import { OpensService } from './opens.service';
 import { SitesService } from './sites.service';
 
 @Controller('sites')
@@ -7,6 +8,7 @@ export class SitesController {
   constructor(
     private readonly sites: SitesService,
     private readonly hearts: HeartsService,
+    private readonly opens: OpensService,
   ) {}
 
   @Get(':slug/heart')
@@ -24,6 +26,15 @@ export class SitesController {
     @Req() request: { ip?: string },
   ) {
     return this.hearts.like(slug, visitorKey ?? '', request.ip ?? 'unknown');
+  }
+
+  @Post(':slug/open')
+  open(
+    @Param('slug') slug: string,
+    @Headers('x-visitor-key') visitorKey: string | undefined,
+    @Req() request: { ip?: string },
+  ) {
+    return this.opens.record(slug, visitorKey, request.ip ?? 'unknown');
   }
 
   @Get(':slug')

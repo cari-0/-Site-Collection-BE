@@ -20,6 +20,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { SearchService } from './search/search.service';
 import { SitesController } from './sites/sites.controller';
 import { HeartsService } from './sites/hearts.service';
+import { OpensService } from './sites/opens.service';
 import { SitesService } from './sites/sites.service';
 import { SubmissionsController } from './submissions/submissions.controller';
 import { SubmissionsService } from './submissions/submissions.service';
@@ -51,6 +52,7 @@ import { UploadsService } from './uploads/uploads.service';
     SearchService,
     SitesService,
     HeartsService,
+    OpensService,
     FeaturedService,
     UploadsService,
     SubmissionsService,

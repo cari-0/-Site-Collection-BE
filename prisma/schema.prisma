@@ -59,6 +59,7 @@ model Keyword {
   sites           SiteKeyword[]
   adSlots         AdSlot[]
   featuredKeyword FeaturedKeyword?
+  searchEvents    SearchEvent[]
 }
 
 model Tag {
@@ -97,6 +98,7 @@ model Site {
   featuredSite     FeaturedSite?
   heartCount       Int            @default(0)
   hearts           SiteHeart[]
+  opens            SiteOpen[]
 
   @@index([status, language, publishedAt])
   @@index([status, language, heartCount])
@@ -196,11 +198,38 @@ model AdSlot {
   @@index([siteId])
 }
 
+model SearchEvent {
+  id        String   @id @default(cuid())
+  slug      String
+  keywordId String?
+  keyword   Keyword? @relation(fields: [keywordId], references: [id], onDelete: SetNull)
+  ipHash    String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([slug, createdAt])
+  @@index([keywordId, createdAt])
+}
+
+model SiteOpen {
+  id         String   @id @default(cuid())
+  siteId     String
+  site       Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  visitorKey String?
+  ipHash     String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([siteId, createdAt])
+}
+
 model FeaturedKeyword {
   id        String   @id @default(cuid())
   keywordId String   @unique
   keyword   Keyword  @relation(fields: [keywordId], references: [id])
   position  Int
+  pinned    Boolean  @default(false)
+  hidden    Boolean  @default(false)
   createdAt DateTime @default(now())
 }
 
