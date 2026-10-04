@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AdminAdsController } from './admin/admin-ads.controller';
 import { AdminAdsService } from './admin/admin-ads.service';
+import { AdminFeaturedController } from './admin/admin-featured.controller';
+import { AdminFeaturedService } from './admin/admin-featured.service';
 import { AdminSubmissionsController } from './admin/admin-submissions.controller';
 import { AdminSitesController } from './admin/admin-sites.controller';
 import { AdminSitesService } from './admin/admin-sites.service';
@@ -38,11 +40,13 @@ import { UploadsService } from './uploads/uploads.service';
     AdminSitesController,
     AdminSubmissionsController,
     AdminAdsController,
+    AdminFeaturedController,
     UploadsController,
   ],
   providers: [
     AdsService,
     AdminAdsService,
+    AdminFeaturedService,
     AdminSitesService,
     SearchService,
     SitesService,

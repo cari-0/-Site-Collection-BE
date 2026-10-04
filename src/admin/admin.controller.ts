@@ -65,4 +65,13 @@ export class AdminController {
   categories() {
     return this.prisma.category.findMany({ orderBy: { sortOrder: 'asc' } });
   }
+
+  @Get('keywords')
+  @UseGuards(AdminGuard)
+  keywords() {
+    return this.prisma.keyword.findMany({
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true, slug: true },
+    });
+  }
 }
